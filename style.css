@@ -1,0 +1,45 @@
+/* Estilo: gris oscuro + verde lima (como la planilla). Responsivo con Bootstrap 5. */
+:root { --lima: #00e600; --gris: #6e6e6e; }
+
+body { min-height: 100vh; background: #0d0d0d; }
+
+/* Fondo animado (se desactiva con prefers-reduced-motion) */
+.fondo {
+  position: fixed; inset: 0; z-index: -1;
+  background: linear-gradient(-45deg, #0d0d0d, #17301a, #1b1b1b, #0b3d12);
+  background-size: 400% 400%; animation: fluir 20s ease infinite;
+}
+@keyframes fluir { 0% {background-position: 0% 50%} 50% {background-position: 100% 50%} 100% {background-position: 0% 50%} }
+@media (prefers-reduced-motion: reduce) { .fondo { animation: none; } }
+
+/* Tarjetas "glass" */
+.card { background: rgba(28, 28, 28, .78); backdrop-filter: blur(8px);
+        border: 1px solid rgba(0, 230, 0, .25); border-radius: 14px; }
+.table { --bs-table-bg: transparent; }
+.navbar { background: rgba(20, 20, 20, .9) !important; border-bottom: 2px solid var(--lima); }
+.navbar-brand, .text-lima { color: var(--lima) !important; font-weight: 700; }
+.nav-link:hover { color: var(--lima) !important; }
+
+.btn-lima { background: var(--lima); color: #000; font-weight: 600; border: 0; }
+.btn-lima:hover { background: #33ff33; color: #000; transform: translateY(-1px); }
+.btn { transition: transform .15s; }
+
+.dia-titulo { background: var(--lima); color: #000; border-radius: 10px 10px 0 0;
+              padding: .4rem 1rem; font-weight: 700; }
+.calentamiento { background: rgba(255,255,255,.07); border-radius: 8px; padding: .5rem .8rem; font-size: .9rem; }
+.badge-especial { background: #ff00ff; color: #fff; }
+.card { animation: aparecer .4s ease both; }
+@keyframes aparecer { from {opacity: 0; transform: translateY(8px)} to {opacity: 1; transform: none} }
+
+/* Colores de la escala RPE (como en la planilla) */
+.rpe { text-align: center; font-weight: 700; min-width: 3.4rem; display: inline-block; border-radius: 6px; padding: .15rem .4rem; }
+.rpe[data-v="1"], .rpe[data-v="2"] { background: #b9e6f5 !important; color: #000 !important; }
+.rpe[data-v="3"], .rpe[data-v="4"] { background: #00e5ff !important; color: #000 !important; }
+.rpe[data-v="5"], .rpe[data-v="6"] { background: #00e600 !important; color: #000 !important; }
+.rpe[data-v="7"], .rpe[data-v="8"] { background: #f5f500 !important; color: #000 !important; }
+.rpe[data-v="9"]  { background: #f08a00 !important; color: #000 !important; }
+.rpe[data-v="10"] { background: #e00000 !important; color: #fff !important; }
+select.rpe { padding-right: 1.6rem; }
+
+input.corto { max-width: 6rem; }
+@media (max-width: 576px) { .table { font-size: .85rem; } }

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block titulo %}{{ rutina.nombre }}{% endblock %}
+{% block contenido %}
+{% set puede = usuario.puede_editar_prescripcion() %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h3 text-lima mb-0">{{ rutina.nombre }}</h1>
+  <div class="d-flex flex-wrap gap-2">
+    {% for n in range(1, rutina.semana_actual + 1) %}
+      <a href="{{ url_for('rutina_ver', rid=rutina.id, semana=n) }}"
+         class="btn btn-sm {{ 'btn-lima' if n == ver else 'btn-outline-light' }}">Sem {{ n }}</a>
+    {% endfor %}
+  </div>
+</div>
+{% if not editable %}<div class="alert alert-info">Estás viendo la semana {{ ver }} (historial, solo lectura). La actual es la {{ rutina.semana_actual }}.</div>{% endif %}
+
+{% if puede %}
+<div class="card p-3 mb-3"><div class="d-flex flex-wrap gap-2 align-items-center">
+  <form method="post" action="{{ url_for('rutina_semana', rid=rutina.id) }}"
+        onsubmit="return confirm('Se crea la semana {{ rutina.semana_actual + 1 }} copiando esta. ¿Seguir?')">
+    <button class="btn btn-lima">➕ Actualizar a semana {{ rutina.semana_actual + 1 }}</button></form>
+  <details class="ms-md-3"><summary class="btn btn-outline-light btn-sm">Usar como plantilla</summary>
+    <form method="post" action="{{ url_for('rutina_duplicar', rid=rutina.id) }}" class="d-flex flex-wrap gap-2 mt-2">
+      <select name="alumno_id" class="form-select form-select-sm w-auto">{% for a in alumnos %}<option value="{{ a.id }}">{{ a.nombre }}</option>{% endfor %}</select>
+      <input name="nombre" class="form-control form-control-sm w-auto" placeholder="Nombre nueva rutina" required maxlength="60">
+      <button class="btn btn-sm btn-lima">Copiar</button></form></details>
+  <form method="post" action="{{ url_for('rutina_eliminar', rid=rutina.id) }}" class="ms-auto"
+        onsubmit="return confirm('¿Eliminar la rutina completa con su historial?')">
+    <button class="btn btn-sm btn-outline-danger">Eliminar rutina</button></form>
+</div></div>
+{% endif %}
+
+{% for dia in rutina.dias %}
+<div class="card mb-4" id="dia{{ dia.numero }}">
+  <div class="dia-titulo">Día {{ dia.numero }}</div>
+  <div class="p-3">
+    <div class="row g-2 mb-3">
+      <div class="col-md-6"><div class="calentamiento"><strong>Movilidad:</strong> {{ dia.calentamiento_movilidad or '–' }}</div></div>
+      <div class="col-md-6"><div class="calentamiento"><strong>Activación:</strong> {{ dia.calentamiento_activacion or '–' }}</div></div>
+    </div>
+
+    {% set w = wellness[dia.id] %}
+    {% if not puede and editable %}
+      <form method="post" action="{{ url_for('wellness_guardar', rid=rutina.id, did=dia.id) }}" class="calentamiento mb-3">
+        <strong>¿Cómo llegás hoy?</strong> <span class="text-secondary small">(1 = muy mal, 5 = muy bien)</span>
+        <div class="row g-2 mt-1 align-items-end">
+          {% for campo, etiqueta in [('dolor','Dolor corporal'),('fatiga','Cansancio mental'),('sueno','Calidad de sueño'),('animo','Ánimo')] %}
+            <div class="col-6 col-md-2"><label class="form-label small mb-0">{{ etiqueta }}</label>
+              <select name="{{ campo }}" class="form-select form-select-sm" required>
+                <option value="">–</option>
+                {% for n in range(1, 6) %}<option value="{{ n }}" {{ 'selected' if w and w[campo] == n }}>{{ n }}</option>{% endfor %}
+              </select></div>
+          {% endfor %}
+          <div class="col-12 col-md-2"><button class="btn btn-sm btn-lima w-100">Guardar</button></div>
+        </div>
+      </form>
+    {% elif w %}
+      <div class="calentamiento mb-3"><strong>Wellness:</strong> dolor {{ w.dolor }} · fatiga {{ w.fatiga }} · sueño {{ w.sueno }} · ánimo {{ w.animo }}
+        <span class="badge bg-secondary">prom. {{ w.promedio() }}</span></div>
+    {% endif %}
+
+    {% for b in dia.bloques %}
+    <form method="post" action="{{ url_for('bloque_guardar', rid=rutina.id, bid=b.id) }}" id="b{{ b.id }}" class="mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <h3 class="h6 mb-0"><span class="badge bg-secondary me-1">{{ b.orden }}</span>{{ b.ejercicio.nombre }}
+          {% if b.ejercicio.video_url %}<a class="ms-2 small" href="{{ b.ejercicio.video_url }}" target="_blank" rel="noopener">▶ Ver video</a>{% endif %}</h3>
+        {% if editable and b.series %}<button class="btn btn-sm btn-lima">Guardar</button>{% endif %}
+      </div>
+      <div class="table-responsive"><table class="table table-sm align-middle mb-0">
+        <thead><tr><th>S</th><th>Reps</th><th>Carga (kg)</th><th>Pausa</th><th>Especial</th><th>RPE</th></tr></thead>
+        <tbody>
+        {% for s in b.series %}
+          <tr><td>{{ s.orden }}</td>
+          {% if puede and editable %}
+            <td><input type="number" min="1" max="100" name="reps_{{ s.id }}" value="{{ s.reps }}" class="form-control form-control-sm corto"></td>
+            <td><input type="number" min="0" max="1000" step="0.5" name="carga_{{ s.id }}" value="{{ '%g'|format(s.carga) }}" class="form-control form-control-sm corto"></td>
+            <td><input name="pausa_{{ s.id }}" value="{{ s.pausa }}" maxlength="20" class="form-control form-control-sm corto" placeholder="1'30''"></td>
+            <td><select name="tipo_{{ s.id }}" class="form-select form-select-sm">
+              <option value="">Normal</option>
+              {% for t in tipos %}<option {{ 'selected' if s.tipo_especial == t }}>{{ t }}</option>{% endfor %}</select></td>
+          {% else %}
+            <td>{{ s.reps }}</td><td>{{ '%g'|format(s.carga) }}</td><td>{{ s.pausa or '–' }}</td>
+            <td>{% if s.es_especial %}<span class="badge badge-especial">{{ s.tipo_especial }}</span>{% else %}–{% endif %}</td>
+          {% endif %}
+          <td>
+            {% if not puede and editable %}
+              <select name="rpe_{{ s.id }}" class="rpe form-select form-select-sm">
+                <option value="">–</option>{% for n in range(1, 11) %}<option value="{{ n }}" {{ 'selected' if s.rpe == n }}>{{ n }}</option>{% endfor %}</select>
+            {% elif s.rpe %}<span class="rpe" data-v="{{ s.rpe }}">{{ s.rpe }}</span>{% else %}–{% endif %}
+          </td></tr>
+        {% else %}<tr><td colspan="6" class="text-secondary">Sin series en esta semana.</td></tr>
+        {% endfor %}
+        </tbody></table></div>
+    </form>
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

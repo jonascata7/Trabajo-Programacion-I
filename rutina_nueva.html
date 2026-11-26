@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block titulo %}Nueva rutina{% endblock %}
+{% block contenido %}
+<h1 class="h3 text-lima">Nueva rutina <small class="text-secondary fs-6">Paso 1 de 2</small></h1>
+{% if not alumnos %}
+  <div class="alert alert-warning">Primero tenés que <a href="{{ url_for('alumnos') }}">crear un alumno</a>.</div>
+{% else %}
+<form method="post" class="card p-3">
+  {% set F = request.form %}
+  <div class="row g-3">
+    <div class="col-md-6"><label class="form-label">Alumno</label>
+      <select name="alumno_id" class="form-select" required>
+        {% for a in alumnos %}<option value="{{ a.id }}" {{ 'selected' if F.get('alumno_id') == a.id|string }}>{{ a.nombre }}</option>{% endfor %}
+      </select></div>
+    <div class="col-md-6"><label class="form-label">Nombre de la rutina</label>
+      <input name="nombre" value="{{ F.get('nombre', '') }}" class="form-control" placeholder="Ej: Nov26" required maxlength="60"></div>
+    <div class="col-md-4"><label class="form-label">Cantidad de días (1 a 7)</label>
+      <input id="dias" name="dias" type="number" min="1" max="7" value="{{ F.get('dias', 3) }}" class="form-control" required></div>
+    <div class="col-md-8"><label class="form-label d-block">Ejercicios por día (máx. 10)</label>
+      <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="modo" value="igual" id="m1" {{ 'checked' if F.get('modo', 'igual') == 'igual' }}><label for="m1" class="form-check-label">Igual para todos los días</label></div>
+      <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="modo" value="personalizada" id="m2" {{ 'checked' if F.get('modo') == 'personalizada' }}><label for="m2" class="form-check-label">Personalizada</label></div>
+    </div>
+    <div class="col-12" id="igual"><label class="form-label">Ejercicios en cada día</label>
+      <input name="ej_igual" type="number" min="1" max="10" value="{{ F.get('ej_igual', 5) }}" class="form-control corto"></div>
+    <div class="col-12 d-none" id="pers"><div class="row g-2">
+      {% for i in range(1, 8) %}
+        <div class="col-6 col-md-3 ej-dia"><label class="form-label">Día {{ i }}</label>
+          <input name="ej_{{ i }}" type="number" min="1" max="10" value="{{ F.get('ej_' ~ i, 5) }}" class="form-control"></div>
+      {% endfor %}
+    </div></div>
+  </div>
+  <div class="mt-3"><button class="btn btn-lima">Siguiente →</button>
+    <a class="btn btn-outline-light" href="{{ url_for('rutinas') }}">Cancelar</a></div>
+</form>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+  const dias = document.getElementById('dias');
+  function ver() {
+    const m = document.querySelector('[name=modo]:checked').value;
+    document.getElementById('igual').classList.toggle('d-none', m !== 'igual');
+    document.getElementById('pers').classList.toggle('d-none', m !== 'personalizada');
+    const n = parseInt(dias.value) || 0;
+    document.querySelectorAll('.ej-dia').forEach((el, i) => el.classList.toggle('d-none', i >= n));
+  }
+  document.querySelectorAll('input').forEach(i => i.addEventListener('input', ver));
+  ver();
+</script>
+{% endblock %}

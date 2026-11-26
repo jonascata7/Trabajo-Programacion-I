@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block titulo %}Editar alumno{% endblock %}
+{% block contenido %}
+<div class="row justify-content-center"><div class="col-md-6 col-lg-4"><div class="card p-4">
+  <h1 class="h4 text-lima">Editar alumno</h1>
+  <form method="post">
+    <label class="form-label">Nombre</label>
+    <input name="nombre" value="{{ alumno.nombre }}" class="form-control mb-2" required maxlength="80">
+    <label class="form-label">Usuario</label>
+    <input name="usuario" value="{{ alumno.usuario }}" class="form-control mb-3" required maxlength="30">
+    <button class="btn btn-lima">Guardar</button>
+    <a class="btn btn-outline-light" href="{{ url_for('alumnos') }}">Cancelar</a>
+  </form>
+</div></div></div>
+{% endblock %}

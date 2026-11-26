@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block titulo %}Armar rutina{% endblock %}
+{% block contenido %}
+{% set F = request.form %}
+<h1 class="h3 text-lima">{{ plan.nombre }} <small class="text-secondary fs-6">Paso 2 de 2</small></h1>
+<p class="text-secondary">Escribí cada ejercicio (se guarda en tu biblioteca). Después ajustás repeticiones, pesos y series especiales.</p>
+<datalist id="biblioteca">{% for e in biblioteca %}<option value="{{ e.nombre }}">{% endfor %}</datalist>
+<form method="post">
+{% for cant in plan.cantidades %}{% set d = loop.index %}
+  <div class="card p-3 mb-3">
+    <h2 class="h5 text-lima">Día {{ d }} <small class="text-secondary">({{ cant }} ejercicios)</small></h2>
+    <div class="row g-2 mb-2">
+      <div class="col-md-6"><label class="form-label">Calentamiento: movilidad articular</label>
+        <textarea name="d{{ d }}_mov" class="form-control" rows="2" maxlength="500">{{ F.get('d' ~ d ~ '_mov', '') }}</textarea></div>
+      <div class="col-md-6"><label class="form-label">Calentamiento: activación</label>
+        <textarea name="d{{ d }}_act" class="form-control" rows="2" maxlength="500">{{ F.get('d' ~ d ~ '_act', '') }}</textarea></div>
+    </div>
+    {% for i in range(1, cant + 1) %}
+      <div class="row g-2 mb-2 align-items-end">
+        <div class="col-md-5"><label class="form-label small">Ejercicio {{ i }}</label>
+          <input name="d{{ d }}_e{{ i }}_nombre" list="biblioteca" value="{{ F.get('d' ~ d ~ '_e' ~ i ~ '_nombre', '') }}" class="form-control" required maxlength="100"></div>
+        <div class="col-md-5"><label class="form-label small">Video de YouTube (opcional)</label>
+          <input name="d{{ d }}_e{{ i }}_video" value="{{ F.get('d' ~ d ~ '_e' ~ i ~ '_video', '') }}" class="form-control" placeholder="https://youtu.be/..."></div>
+        <div class="col-md-2"><label class="form-label small">N° de series</label>
+          <input name="d{{ d }}_e{{ i }}_series" type="number" min="1" max="10" value="{{ F.get('d' ~ d ~ '_e' ~ i ~ '_series', 3) }}" class="form-control" required></div>
+      </div>
+    {% endfor %}
+  </div>
+{% endfor %}
+  <button class="btn btn-lima">Crear rutina</button>
+  <a class="btn btn-outline-light" href="{{ url_for('rutina_nueva') }}">← Volver</a>
+</form>
+{% endblock %}

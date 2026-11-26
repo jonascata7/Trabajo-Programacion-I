@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block titulo %}Rutinas{% endblock %}
+{% block contenido %}
+{% set es_ent = usuario.rol == 'entrenador' %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 text-lima mb-0">{{ 'Rutinas' if es_ent else 'Mis rutinas' }}</h1>
+  {% if es_ent %}<a class="btn btn-lima" href="{{ url_for('rutina_nueva') }}">+ Nueva rutina</a>{% endif %}
+</div>
+<div class="card"><div class="table-responsive"><table class="table align-middle mb-0">
+  <thead><tr><th>Rutina</th>{% if es_ent %}<th>Alumno</th>{% endif %}<th>Semana actual</th><th></th></tr></thead>
+  <tbody>
+  {% for r in lista %}
+    <tr><td>{{ r.nombre }}</td>{% if es_ent %}<td>{{ r.alumno }}</td>{% endif %}
+      <td><span class="badge bg-secondary">Semana {{ r.semana_actual }}</span></td>
+      <td class="text-end"><a class="btn btn-sm btn-lima" href="{{ url_for('rutina_ver', rid=r.id) }}">Abrir</a></td></tr>
+  {% else %}<tr><td colspan="4" class="text-center py-4 text-secondary">Todavía no hay rutinas.</td></tr>
+  {% endfor %}
+  </tbody></table></div></div>
+{% endblock %}

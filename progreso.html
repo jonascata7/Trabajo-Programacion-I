@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block titulo %}Progreso{% endblock %}
+{% block contenido %}
+<h1 class="h3 text-lima">Progreso de {{ nombre }}</h1>
+<div class="row g-3">
+  <div class="col-lg-7"><div class="card p-3">
+    <form method="get" class="d-flex gap-2 mb-2 align-items-center">
+      <label class="mb-0">Ejercicio:</label>
+      <select name="ejercicio" class="form-select w-auto" onchange="this.form.submit()">
+        {% for e in ejercicios %}<option value="{{ e.id }}" {{ 'selected' if e.id == ej_id }}>{{ e.nombre }}</option>{% endfor %}
+      </select></form>
+    {% if carga %}<canvas id="c1" height="140"></canvas>
+    {% else %}<p class="text-secondary my-4">Sin datos para este ejercicio todavía.</p>{% endif %}
+  </div></div>
+  <div class="col-lg-5"><div class="card p-3">
+    <h2 class="h6">RPE promedio por semana (rutina más reciente)</h2>
+    {% if rpe_sem %}<canvas id="c2" height="190"></canvas>{% else %}<p class="text-secondary my-4">Sin datos todavía.</p>{% endif %}
+  </div></div>
+  <div class="col-12"><div class="card p-3">
+    <h2 class="h6">¿Cómo llegó a entrenar vs. cuánto le costó?</h2>
+    <div class="table-responsive"><table class="table table-sm mb-0">
+      <thead><tr><th>Fecha</th><th>Semana</th><th>Día</th><th>Wellness (1-5)</th><th>RPE prom.</th></tr></thead>
+      <tbody>{% for c in cruce %}
+        <tr><td>{{ c.fecha }}</td><td>{{ c.semana }}</td><td>{{ c.dia }}</td><td>{{ c.wellness_prom }}</td>
+          <td>{% if c.rpe_prom %}<span class="rpe" data-v="{{ c.rpe_prom|round|int }}">{{ c.rpe_prom }}</span>{% else %}–{% endif %}</td></tr>
+      {% else %}<tr><td colspan="5" class="text-secondary">Sin registros de wellness todavía.</td></tr>{% endfor %}
+      </tbody></table></div>
+  </div></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  Chart.defaults.color = '#ccc'; Chart.defaults.borderColor = 'rgba(255,255,255,.1)';
+  const carga = {{ carga|tojson }}, rpe = {{ rpe_sem|tojson }};
+  if (document.getElementById('c1')) new Chart(document.getElementById('c1'), {
+    type: 'line',
+    data: { labels: carga.map(x => 'Sem ' + x.semana), datasets: [
+      { label: 'Carga máxima (kg)', data: carga.map(x => x.carga_max), borderColor: '#00e600', backgroundColor: '#00e600', tension: .3, yAxisID: 'y' },
+      { label: 'Volumen (reps × kg)', data: carga.map(x => x.volumen), borderColor: '#ff00ff', backgroundColor: '#ff00ff', tension: .3, yAxisID: 'y1' }]},
+    options: { scales: { y: { position: 'left' }, y1: { position: 'right', grid: { drawOnChartArea: false } } } }
+  });
+  if (document.getElementById('c2')) new Chart(document.getElementById('c2'), {
+    type: 'bar',
+    data: { labels: rpe.map(x => 'Sem ' + x.semana), datasets: [{ label: 'RPE promedio', data: rpe.map(x => x.rpe_prom), backgroundColor: '#f5f500' }] },
+    options: { scales: { y: { min: 0, max: 10 } } }
+  });
+</script>
+{% endblock %}

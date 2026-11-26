@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block titulo %}Ejercicios{% endblock %}
+{% block contenido %}
+<h1 class="h3 text-lima">Mi biblioteca de ejercicios</h1>
+<p class="text-secondary">Los ejercicios que usás en una rutina se guardan acá solos, así los reutilizás en las próximas.</p>
+<div class="row g-3">
+  <div class="col-lg-8">
+    <form class="row g-2 mb-3" method="get">
+      <div class="col-9"><input name="q" value="{{ q }}" class="form-control" placeholder="Buscar ejercicio"></div>
+      <div class="col-3"><button class="btn btn-outline-light w-100">Buscar</button></div>
+    </form>
+    <div class="card"><div class="table-responsive"><table class="table align-middle mb-0">
+      <thead><tr><th>Ejercicio</th><th>Grupo</th><th>Video</th><th></th></tr></thead>
+      <tbody>
+      {% for e in lista %}
+        <tr><td>{{ e.nombre }}</td><td>{{ e.grupo_muscular or '–' }}</td>
+          <td>{% if e.video_url %}<a href="{{ e.video_url }}" target="_blank" rel="noopener">▶ Ver</a>{% else %}–{% endif %}</td>
+          <td class="text-end"><form method="post" action="{{ url_for('ejercicio_eliminar', ej_id=e.id) }}"
+                onsubmit="return confirm('¿Eliminar {{ e.nombre }}?')"><button class="btn btn-sm btn-outline-danger">Eliminar</button></form></td></tr>
+      {% else %}<tr><td colspan="4" class="text-center py-4 text-secondary">Sin ejercicios todavía.</td></tr>
+      {% endfor %}
+      </tbody></table></div></div>
+  </div>
+  <div class="col-lg-4"><div class="card p-3">
+    <h2 class="h5">Nuevo ejercicio</h2>
+    <form method="post">
+      <input name="nombre" class="form-control mb-2" placeholder="Nombre" required maxlength="100">
+      <input name="grupo" class="form-control mb-2" placeholder="Grupo muscular (opcional)" maxlength="50">
+      <input name="video" class="form-control mb-2" placeholder="Link de YouTube (opcional)">
+      <button class="btn btn-lima w-100">Guardar</button>
+    </form>
+  </div></div>
+</div>
+{% endblock %}
